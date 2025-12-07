@@ -14,8 +14,10 @@ const emptyForm = {
   description: "",
   location: "",
   category: "concert",
+  eventType: "in-person",
   capacity: 100,
   price: 50,
+  isFree: false,
   imageUrl: "",
   startTime: "",
   endTime: "",
@@ -30,32 +32,43 @@ const AdminEventEdit = () => {
 
   useEffect(() => {
     const load = async () => {
-      const { data } = await api.get(`/events/${id}`);
-      setForm({
-        ...data,
-        startTime: dayjs(data.startTime).format("YYYY-MM-DDTHH:mm"),
-        endTime: dayjs(data.endTime).format("YYYY-MM-DDTHH:mm"),
-      });
-      setLoading(false);
+      try {
+        const { data } = await api.get(`/events/${id}`);
+        setForm({
+          ...data,
+          startTime: dayjs(data.startTime).format("YYYY-MM-DDTHH:mm"),
+          endTime: dayjs(data.endTime).format("YYYY-MM-DDTHH:mm"),
+        });
+      } catch (err) {
+        setMessage(err?.response?.data?.message || "Unable to load event");
+      } finally {
+        setLoading(false);
+      }
     };
     load();
   }, [id]);
 
   const submit = async (e) => {
     e.preventDefault();
-    await api.put(`/events/${id}`, {
-      title: form.title,
-      description: form.description,
-      location: form.location,
-      category: form.category,
-      capacity: Number(form.capacity),
-      price: Number(form.price),
-      imageUrl: form.imageUrl,
-      startTime: form.startTime,
-      endTime: form.endTime,
-    });
-    setMessage("Event updated");
-    navigate("/");
+    try {
+      await api.put(`/events/${id}`, {
+        title: form.title,
+        description: form.description,
+        location: form.location,
+        category: form.category,
+        eventType: form.eventType,
+        capacity: Number(form.capacity),
+        price: form.isFree ? 0 : Number(form.price),
+        isFree: !!form.isFree,
+        imageUrl: form.imageUrl,
+        startTime: form.startTime,
+        endTime: form.endTime,
+      });
+      setMessage("Event updated");
+      navigate("/");
+    } catch (err) {
+      setMessage(err?.response?.data?.message || "Unable to update event");
+    }
   };
 
   const handleImageUpload = (file) => {
@@ -88,15 +101,36 @@ const AdminEventEdit = () => {
               <Input type="datetime-local" value={form.startTime} onChange={(e) => setForm({ ...form, startTime: e.target.value })} required />
               <Input type="datetime-local" value={form.endTime} onChange={(e) => setForm({ ...form, endTime: e.target.value })} required />
             </div>
-            <div className="grid gap-3 sm:grid-cols-3">
+            <div className="grid gap-3 sm:grid-cols-4">
               <Select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}>
                 <option value="concert">Concert</option>
                 <option value="conference">Conference</option>
                 <option value="sports">Sports</option>
                 <option value="other">Other</option>
               </Select>
+              <Select value={form.eventType} onChange={(e) => setForm({ ...form, eventType: e.target.value })}>
+                <option value="in-person">In-person</option>
+                <option value="online">Online</option>
+                <option value="hybrid">Hybrid</option>
+                <option value="other">Other</option>
+              </Select>
               <Input type="number" placeholder="Capacity" value={form.capacity} onChange={(e) => setForm({ ...form, capacity: Number(e.target.value) })} />
-              <Input type="number" placeholder="Price" value={form.price} onChange={(e) => setForm({ ...form, price: Number(e.target.value) })} />
+              <Input
+                type="number"
+                placeholder="Price"
+                value={form.price}
+                disabled={form.isFree}
+                onChange={(e) => setForm({ ...form, price: Number(e.target.value) })}
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <input
+                id="isFreeEdit"
+                type="checkbox"
+                checked={!!form.isFree}
+                onChange={(e) => setForm({ ...form, isFree: e.target.checked, price: e.target.checked ? 0 : form.price })}
+              />
+              <Label htmlFor="isFreeEdit">This is a free event</Label>
             </div>
             <div className="space-y-2">
               <Label>Upload Image</Label>

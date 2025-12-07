@@ -24,33 +24,47 @@ router.post(
   protect,
   [body("eventId").notEmpty(), body("quantity").isInt({ gt: 0 })],
   async (req, res) => {
-    if (req.user.role === "admin") return res.status(403).json({ message: "Admins cannot book events" });
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
-    const { eventId, quantity, paymentProvider = "stripe", paymentIntentId } = req.body;
-    const availability = await computeAvailability(eventId);
-    if (!availability) return res.status(404).json({ message: "Event not found" });
-    if (availability.remaining < quantity)
-      return res.status(400).json({ message: "Not enough availability" });
+    try {
+      if (req.user.role === "admin") return res.status(403).json({ message: "Admins cannot book events" });
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+      const { eventId, quantity, paymentProvider = "stripe", paymentIntentId } = req.body;
+      const availability = await computeAvailability(eventId);
+      if (!availability) return res.status(404).json({ message: "Event not found" });
+      if (availability.remaining < quantity)
+        return res.status(400).json({ message: "Not enough availability" });
 
-    const totalPrice = availability.event.price * quantity;
-    const booking = await Booking.create({
-      user: req.user._id,
-      event: eventId,
-      quantity,
-      totalPrice,
-      status: "confirmed",
-      paymentProvider,
-      paymentIntentId
-    });
+      const isFree = availability.event.isFree || availability.event.price === 0;
+      if (!isFree) {
+        return res.status(400).json({ message: "Use Stripe checkout for paid events" });
+      }
 
-    await sendEmail(
-      req.user.email,
-      "Booking confirmed",
-      `Your booking for ${availability.event.title} is confirmed. Qty: ${quantity}, total: ${totalPrice}`
-    );
+      const totalPrice = availability.event.price * quantity;
+      const booking = await Booking.create({
+        user: req.user._id,
+        event: eventId,
+        quantity,
+        totalPrice,
+        status: "confirmed",
+        paymentProvider: isFree ? "free" : paymentProvider,
+        paymentIntentId: isFree ? undefined : paymentIntentId
+      });
 
-    res.status(201).json(await booking.populate("event"));
+      try {
+        await sendEmail(
+          req.user.email,
+          "Booking confirmed",
+          `Your booking for ${availability.event.title} is confirmed. Qty: ${quantity}, total: ${totalPrice}`
+        );
+      } catch (err) {
+        console.error("Email send failed", err.message);
+      }
+
+      res.status(201).json(await booking.populate("event"));
+    } catch (err) {
+      console.error("Booking creation failed", err.message);
+      res.status(500).json({ message: "Unable to create booking" });
+    }
   }
 );
 

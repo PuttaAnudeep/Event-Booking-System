@@ -8,24 +8,29 @@ import { useAuth } from "../context/AuthContext.jsx";
 const Bookings = () => {
   const [bookings, setBookings] = useState([]);
   const [adminStats, setAdminStats] = useState([]);
+  const [message, setMessage] = useState("");
   const { user } = useAuth();
 
   useEffect(() => {
     const load = async () => {
-      if (user?.role === "admin") {
-        const { data: events } = await api.get("/events");
-        const stats = await Promise.all(
-          events.map(async (ev) => {
-            const { data: avail } = await api.get(`/events/${ev._id}/availability`);
-            const booked = avail.booked || 0;
-            const remaining = avail.remaining;
-            return { ...ev, booked, remaining };
-          })
-        );
-        setAdminStats(stats);
-      } else {
-        const { data } = await api.get("/bookings/me");
-        setBookings(data);
+      try {
+        if (user?.role === "admin") {
+          const { data: events } = await api.get("/events/manage");
+          const stats = await Promise.all(
+            events.map(async (ev) => {
+              const { data: avail } = await api.get(`/events/${ev._id}/availability`);
+              const booked = avail.booked || 0;
+              const remaining = avail.remaining;
+              return { ...ev, booked, remaining };
+            })
+          );
+          setAdminStats(stats);
+        } else {
+          const { data } = await api.get("/bookings/me");
+          setBookings(data);
+        }
+      } catch (err) {
+        setMessage(err?.response?.data?.message || "Unable to load bookings");
       }
     };
     load();
@@ -38,6 +43,7 @@ const Bookings = () => {
           <CardTitle>{user?.role === "admin" ? "Event occupancy" : "My bookings"}</CardTitle>
         </CardHeader>
         <CardContent>
+          {message && <p className="text-destructive text-sm mb-2">{message}</p>}
           {user?.role === "admin" ? (
             <Table>
               <TableHeader>

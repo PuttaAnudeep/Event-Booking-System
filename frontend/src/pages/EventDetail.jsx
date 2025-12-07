@@ -14,12 +14,24 @@ const EventDetail = () => {
   const [availability, setAvailability] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { user } = useAuth();
 
   useEffect(() => {
-    api.get(`/events/${id}`).then(({ data }) => setEvent(data));
-    api.get(`/events/${id}/availability`).then(({ data }) => setAvailability(data));
+    const load = async () => {
+      try {
+        const [{ data: eventData }, { data: availabilityData }] = await Promise.all([
+          api.get(`/events/${id}`),
+          api.get(`/events/${id}/availability`),
+        ]);
+        setEvent(eventData);
+        setAvailability(availabilityData);
+      } catch (err) {
+        setMessage(err?.response?.data?.message || "Unable to load event");
+      }
+    };
+    load();
   }, [id]);
 
   const submitBooking = async () => {
@@ -29,15 +41,28 @@ const EventDetail = () => {
       return;
     }
     setMessage("");
+    setLoading(true);
     try {
-      await api.post("/bookings", { eventId: id, quantity });
-      setMessage("Booking confirmed! Check your email.");
-      navigate("/bookings");
+      if (event?.isFree || event?.price === 0) {
+        await api.post("/bookings", { eventId: id, quantity, paymentProvider: "free" });
+        setMessage("Booking confirmed!");
+        navigate("/bookings");
+      } else {
+        const { data } = await api.post("/payments/stripe/checkout", { eventId: id, quantity });
+        if (data?.url) {
+          window.location.href = data.url;
+        } else {
+          setMessage("Unable to start checkout.");
+        }
+      }
     } catch (err) {
-      setMessage(err.response?.data?.message || "Error booking");
+      setMessage(err.response?.data?.message || "Error starting payment");
+    } finally {
+      setLoading(false);
     }
   };
 
+  if (message && !event) return <p className="text-destructive page-shell">{message}</p>;
   if (!event) return <p className="muted">Loading...</p>;
 
   return (
@@ -51,7 +76,10 @@ const EventDetail = () => {
       </div>
       <div className="grid gap-6 lg:grid-cols-[1.3fr_0.7fr]">
         <div className="space-y-3">
-          <Badge className="uppercase tracking-wide text-[11px]">{event.category}</Badge>
+          <div className="flex items-center gap-2">
+            <Badge className="uppercase tracking-wide text-[11px]">{event.category}</Badge>
+            <Badge variant="outline" className="uppercase tracking-wide text-[10px]">{event.eventType || "in-person"}</Badge>
+          </div>
           <h2 className="text-3xl font-semibold leading-tight">{event.title}</h2>
           <p className="muted">{event.location}</p>
           <p className="muted">{dayjs(event.startTime).format("MMM D, h:mm A")} - {dayjs(event.endTime).format("MMM D, h:mm A")}</p>
@@ -62,7 +90,7 @@ const EventDetail = () => {
             <div className="flex items-baseline justify-between">
               <div>
                 <p className="muted">Ticket price</p>
-                <div className="text-2xl font-semibold">${event.price.toFixed(2)}</div>
+                <div className="text-2xl font-semibold">{event.isFree || event.price === 0 ? "Free" : `$${event.price.toFixed(2)}`}</div>
               </div>
               <div className="text-right">
                 <p className="muted">Availability</p>
@@ -78,8 +106,8 @@ const EventDetail = () => {
                 onChange={(e) => setQuantity(parseInt(e.target.value, 10))}
               />
             </div>
-            <Button className="w-full" onClick={submitBooking} disabled={user?.role === "admin"}>
-              {user?.role === "admin" ? "Admins cannot book" : "Book Now"}
+            <Button className="w-full" onClick={submitBooking} disabled={user?.role === "admin" || loading}>
+              {user?.role === "admin" ? "Admins cannot book" : loading ? "Redirecting..." : "Book Now"}
             </Button>
             {message && <p className="muted">{message}</p>}
           </CardContent>

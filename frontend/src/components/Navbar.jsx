@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
 import { Button } from "./ui/button.jsx";
 import { Separator } from "./ui/separator.jsx";
+import { Home, CalendarClock, User, LogIn, LogOut, PlusCircle } from "lucide-react";
 
 const Navbar = () => {
   const { user, logout } = useAuth();
@@ -11,31 +12,43 @@ const Navbar = () => {
       <Link to="/" className="text-lg font-bold tracking-tight">Eventia</Link>
       <div className="flex items-center gap-2">
         <Button asChild variant="ghost" size="sm">
-          <Link to="/">Explore</Link>
+          <Link to="/">
+            <Home className="mr-2 h-4 w-4" /> Explore
+          </Link>
         </Button>
-        {user?.role !== "admin" && (
+        {user && user.role !== "admin" && (
           <Button asChild variant="ghost" size="sm">
-            <Link to="/bookings">My Bookings</Link>
+            <Link to="/bookings">
+              <CalendarClock className="mr-2 h-4 w-4" /> My Bookings
+            </Link>
           </Button>
         )}
         {user && (
           <Button asChild variant="ghost" size="sm">
-            <Link to="/profile">Profile</Link>
+            <Link to="/profile">
+              <User className="mr-2 h-4 w-4" /> Profile
+            </Link>
           </Button>
         )}
         {user?.role === "admin" && (
           <Button asChild size="sm">
-            <Link to="/admin/events#create">Create Event</Link>
+            <Link to="/admin/events#create">
+              <PlusCircle className="mr-2 h-4 w-4" /> Create Event
+            </Link>
           </Button>
         )}
         <Separator orientation="vertical" className="mx-1 h-6" />
         {!user && (
           <>
             <Button asChild variant="ghost" size="sm">
-              <Link to="/login">Login</Link>
+              <Link to="/login">
+                <LogIn className="mr-2 h-4 w-4" /> Login
+              </Link>
             </Button>
             <Button asChild size="sm">
-              <Link to="/register">Sign Up</Link>
+              <Link to="/register">
+                <PlusCircle className="mr-2 h-4 w-4" /> Sign Up
+              </Link>
             </Button>
           </>
         )}
@@ -43,7 +56,7 @@ const Navbar = () => {
           <div className="flex items-center gap-2">
             <span className="text-xs uppercase tracking-wide text-muted-foreground">{user.role}</span>
             <Button size="sm" onClick={logout}>
-              Logout
+              <LogOut className="mr-2 h-4 w-4" /> Logout
             </Button>
           </div>
         )}

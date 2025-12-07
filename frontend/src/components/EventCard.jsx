@@ -15,12 +15,17 @@ const EventCard = ({ event }) => (
       />
     </div>
     <CardContent className="space-y-2 pt-4">
-      <Badge className="uppercase tracking-wide text-[11px]">{event.category}</Badge>
+      <div className="flex items-center gap-2">
+        <Badge className="uppercase tracking-wide text-[11px]">{event.category}</Badge>
+        <Badge variant="outline" className="uppercase tracking-wide text-[10px]">
+          {event.eventType || "in-person"}
+        </Badge>
+      </div>
       <h3 className="text-lg font-semibold leading-tight">{event.title}</h3>
       <p className="muted">{event.location}</p>
       <p className="muted">{dayjs(event.startTime).format("MMM D, h:mm A")}</p>
       <div className="flex items-center justify-between pt-2">
-        <strong className="text-xl">${event.price.toFixed(2)}</strong>
+        <strong className="text-xl">{event.isFree || event.price === 0 ? "Free" : `$${event.price.toFixed(2)}`}</strong>
         <Button asChild size="sm">
           <Link to={`/events/${event._id}`}>Book</Link>
         </Button>

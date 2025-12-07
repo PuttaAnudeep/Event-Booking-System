@@ -13,8 +13,10 @@ const emptyForm = {
   description: "",
   location: "",
   category: "concert",
+  eventType: "in-person",
   capacity: 100,
   price: 50,
+  isFree: false,
   imageUrl: "",
   date: "",
   startClock: "",
@@ -29,7 +31,15 @@ const AdminEvents = () => {
   const [editForm, setEditForm] = useState(emptyForm);
 
   useEffect(() => {
-    api.get("/events").then(({ data }) => setEvents(data));
+    const load = async () => {
+      try {
+        const { data } = await api.get("/events/manage");
+        setEvents(data);
+      } catch (err) {
+        setMessage(err?.response?.data?.message || "Unable to load events");
+      }
+    };
+    load();
   }, []);
 
   const startEdit = (eventId) => {
@@ -59,37 +69,49 @@ const AdminEvents = () => {
       description: form.description,
       location: form.location,
       category: form.category,
+      eventType: form.eventType,
       capacity: Number(form.capacity),
-      price: Number(form.price),
+      price: form.isFree ? 0 : Number(form.price),
+      isFree: !!form.isFree,
       imageUrl: form.imageUrl,
       ...payloadFromForm,
     };
-    await api.post("/events", body);
-    setMessage("Event published");
-    setForm(emptyForm);
-    const { data } = await api.get("/events");
-    setEvents(data);
+    try {
+      await api.post("/events", body);
+      setMessage("Event published");
+      setForm(emptyForm);
+      const { data } = await api.get("/events/manage");
+      setEvents(data);
+    } catch (err) {
+      setMessage(err?.response?.data?.message || "Unable to publish event");
+    }
   };
 
   const saveEdit = async (e) => {
     e.preventDefault();
     if (!editingId) return;
-    await api.put(`/events/${editingId}`, {
-      title: editForm.title,
-      description: editForm.description,
-      location: editForm.location,
-      category: editForm.category,
-      capacity: Number(editForm.capacity),
-      price: Number(editForm.price),
-      imageUrl: editForm.imageUrl,
-      startTime: editForm.startTime,
-      endTime: editForm.endTime,
-    });
-    setMessage("Event updated");
-    setEditingId(null);
-    setEditForm(emptyForm);
-    const { data } = await api.get("/events");
-    setEvents(data);
+    try {
+      await api.put(`/events/${editingId}`, {
+        title: editForm.title,
+        description: editForm.description,
+        location: editForm.location,
+        category: editForm.category,
+        eventType: editForm.eventType,
+        capacity: Number(editForm.capacity),
+        price: editForm.isFree ? 0 : Number(editForm.price),
+        isFree: !!editForm.isFree,
+        imageUrl: editForm.imageUrl,
+        startTime: editForm.startTime,
+        endTime: editForm.endTime,
+      });
+      setMessage("Event updated");
+      setEditingId(null);
+      setEditForm(emptyForm);
+      const { data } = await api.get("/events/manage");
+      setEvents(data);
+    } catch (err) {
+      setMessage(err?.response?.data?.message || "Unable to update event");
+    }
   };
 
   const handleImageUpload = (file, setter) => {
@@ -135,7 +157,7 @@ const AdminEvents = () => {
               <Label>Location</Label>
               <Input placeholder="Location" value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} required />
             </div>
-            <div className="grid gap-3 sm:grid-cols-3">
+            <div className="grid gap-3 sm:grid-cols-4">
               <div className="space-y-2">
                 <Label>Category</Label>
                 <Select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}>
@@ -146,13 +168,37 @@ const AdminEvents = () => {
                 </Select>
               </div>
               <div className="space-y-2">
+                <Label>Event type</Label>
+                <Select value={form.eventType} onChange={(e) => setForm({ ...form, eventType: e.target.value })}>
+                  <option value="in-person">In-person</option>
+                  <option value="online">Online</option>
+                  <option value="hybrid">Hybrid</option>
+                  <option value="other">Other</option>
+                </Select>
+              </div>
+              <div className="space-y-2">
                 <Label>Capacity</Label>
                 <Input type="number" placeholder="Capacity" value={form.capacity} onChange={(e) => setForm({ ...form, capacity: Number(e.target.value) })} />
               </div>
               <div className="space-y-2">
                 <Label>Price</Label>
-                <Input type="number" placeholder="Price" value={form.price} onChange={(e) => setForm({ ...form, price: Number(e.target.value) })} />
+                <Input
+                  type="number"
+                  placeholder="Price"
+                  value={form.price}
+                  disabled={form.isFree}
+                  onChange={(e) => setForm({ ...form, price: Number(e.target.value) })}
+                />
               </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <input
+                id="isFree"
+                type="checkbox"
+                checked={form.isFree}
+                onChange={(e) => setForm({ ...form, isFree: e.target.checked, price: e.target.checked ? 0 : form.price })}
+              />
+              <Label htmlFor="isFree">This is a free event</Label>
             </div>
             <div className="space-y-2">
               <Label>Upload Image</Label>

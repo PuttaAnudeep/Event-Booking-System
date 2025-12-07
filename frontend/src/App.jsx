@@ -8,6 +8,7 @@ import Bookings from "./pages/Bookings.jsx";
 import AdminEvents from "./pages/AdminEvents.jsx";
 import AdminEventEdit from "./pages/AdminEventEdit.jsx";
 import Profile from "./pages/Profile.jsx";
+import PaymentSuccess from "./pages/PaymentSuccess.jsx";
 import { AuthProvider } from "./context/AuthContext.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 
@@ -33,6 +34,14 @@ const App = () => (
           element={
             <ProtectedRoute>
               <Bookings />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/payment-success"
+          element={
+            <ProtectedRoute>
+              <PaymentSuccess />
             </ProtectedRoute>
           }
         />
