@@ -26,7 +26,7 @@ npm install
 npm run dev             # opens the app at http://localhost:5173
 ```
 
-> **Note:** The backend `.env` file and frontend `.env` file are attached to the mail.
+> **Note:** The backend `.env` file and frontend `.env` file are added in the mail.
 
 4) Log in and try it
 - Default admin from the seed:
@@ -73,6 +73,7 @@ npm run dev             # opens the app at http://localhost:5173
 
 ## Application demo video
 - Watch the walkthrough: [Eventia demo](frontend/src/Assets/Demo%20App%20video/eventia-app%20video.mp4)
+- Drive link (shareable): [Google Drive demo](https://drive.google.com/file/d/17eG8bzQzgDVRJFrgTTxoch9YMqkqy31G/view?usp=sharing)
 
 ## Application WorkFlow:
 Images live in `frontend/src/Assets/App Screenshots/` (names kept in order below).
