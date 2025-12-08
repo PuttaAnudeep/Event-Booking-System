@@ -26,8 +26,6 @@ npm install
 npm run dev             # opens the app at http://localhost:5173
 ```
 
-> **Note:** The backend `.env` file and frontend `.env` file are added in the mail.
-
 4) Log in and try it
 - Default admin from the seed:
  email `a@gmail.com`, password `Password@123`.
@@ -35,13 +33,18 @@ npm run dev             # opens the app at http://localhost:5173
 
 5) To explore the complete payment experience—including payment processing, notifications, and reminders—use the Stripe test credit card details below
 - Email:test@example.com
-- Card details:
+- **Card details:**
   card no : 4242 4242 4242 4242
   expires : 12/34
   cvv : 567
   name on card : Zhang San
   Country : United States
   pin :  12345
+
+**Note:** The backend `.env` file and frontend `.env` file are given using drive links:
+**backend .env** : https://drive.google.com/file/d/1faRSo8qjemcX8RbTcG4ZM7qeblGVkJNs/view?usp=sharing
+
+**frontend .env** : https://drive.google.com/file/d/1GD6c7c6ntMNrKb91yocHt5OHZ5Av0SZc/view?usp=sharing
 
 ## Features 
 
@@ -73,7 +76,7 @@ npm run dev             # opens the app at http://localhost:5173
 
 ## Application demo video
 - Watch the walkthrough: [Eventia demo](frontend/src/Assets/Demo%20App%20video/eventia-app%20video.mp4)
-- Drive link (shareable): [Google Drive demo](https://drive.google.com/file/d/17eG8bzQzgDVRJFrgTTxoch9YMqkqy31G/view?usp=sharing)
+-or else use Drive link (shareable): https://drive.google.com/file/d/17eG8bzQzgDVRJFrgTTxoch9YMqkqy31G/view?usp=sharing
 
 ## Application WorkFlow:
 Images live in `frontend/src/Assets/App Screenshots/` (names kept in order below).
