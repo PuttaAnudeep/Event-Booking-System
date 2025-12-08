@@ -41,10 +41,11 @@ npm run dev             # opens the app at http://localhost:5173
   Country : United States
   pin :  12345
 
-**Note:** The backend `.env` file and frontend `.env` file are given using drive links:
-**backend .env** : https://drive.google.com/file/d/1faRSo8qjemcX8RbTcG4ZM7qeblGVkJNs/view?usp=sharing
+**Note:** The backend `.env` file and frontend `.env` file are given using drive links
 
-**frontend .env** : https://drive.google.com/file/d/1GD6c7c6ntMNrKb91yocHt5OHZ5Av0SZc/view?usp=sharing
+**backend .env file** : https://drive.google.com/file/d/1faRSo8qjemcX8RbTcG4ZM7qeblGVkJNs/view?usp=sharing
+
+**frontend .env file** : https://drive.google.com/file/d/1GD6c7c6ntMNrKb91yocHt5OHZ5Av0SZc/view?usp=sharing
 
 ## Features 
 
