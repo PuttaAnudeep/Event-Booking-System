@@ -29,10 +29,16 @@ const Profile = () => {
       if (form.password) payload.password = form.password;
       const { data } = await api.put("/auth/me", payload);
       login(localStorage.getItem("token"), data.user);
-      setMessage("Profile updated");
+      if (form.password) {
+        setMessage("Password updated. Use your new password next time you log in.");
+      } else {
+        setMessage("Profile updated");
+      }
       setForm((prev) => ({ ...prev, password: "" }));
     } catch (err) {
-      setMessage(err.response?.data?.message || "Update failed");
+      const apiMessage = err.response?.data?.message;
+      const validationMessage = err.response?.data?.errors?.[0]?.msg;
+      setMessage(apiMessage || validationMessage || "Update failed");
     }
   };
 

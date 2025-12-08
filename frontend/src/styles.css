@@ -12,7 +12,7 @@
   --popover: 34 46% 98%;
   --popover-foreground: 216 15% 16%;
 
-  --primary: 18 48% 58%; /* softer terracotta */
+  --primary: 24 95% 55%; /* bright orange */
   --primary-foreground: 0 0% 100%;
 
   --secondary: 30 32% 92%;
@@ -21,7 +21,7 @@
   --muted: 30 22% 90%;
   --muted-foreground: 215 12% 42%;
 
-  --accent: 18 48% 58%;
+  --accent: 24 95% 55%;
   --accent-foreground: 0 0% 100%;
 
   --destructive: 0 70% 48%;
@@ -29,7 +29,7 @@
 
   --border: 30 22% 85%;
   --input: 30 22% 85%;
-  --ring: 18 48% 58%;
+  --ring: 24 95% 55%;
 
   --radius: 1rem;
 }
@@ -56,7 +56,7 @@ a {
 }
 
 .page-shell {
-  @apply container py-8 space-y-6;
+  @apply container px-4 sm:px-6 py-8 space-y-6;
 }
 
 .section-title {

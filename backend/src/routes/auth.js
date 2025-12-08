@@ -55,13 +55,16 @@ router.put(
   "/me",
   protect,
   [
-    body("name").optional().isLength({ min: 2 }),
-    body("email").optional().isEmail(),
-    body("password").optional().isLength({ min: 6 })
+    body("name").optional().isLength({ min: 2 }).withMessage("Name must be at least 2 characters"),
+    body("email").optional().isEmail().withMessage("Please provide a valid email"),
+    body("password").optional().isLength({ min: 6 }).withMessage("Password must be at least 6 characters")
   ],
   async (req, res) => {
     const errors = validationResult(req);
-    if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+    if (!errors.isEmpty()) {
+      const first = errors.array()[0];
+      return res.status(400).json({ message: first?.msg || "Invalid input", errors: errors.array() });
+    }
 
     const { name, email, password } = req.body;
     const user = await User.findById(req.user.id);

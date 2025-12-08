@@ -11,11 +11,19 @@ const Navbar = () => {
     <nav className="glass sticky top-4 z-30 mb-6 flex items-center justify-between px-4 py-3">
       <Link to="/" className="text-lg font-bold tracking-tight">Eventia</Link>
       <div className="flex items-center gap-2">
-        <Button asChild variant="ghost" size="sm">
-          <Link to="/">
-            <Home className="mr-2 h-4 w-4" /> Explore
-          </Link>
-        </Button>
+        {user?.role === "admin" ? (
+          <Button asChild variant="ghost" size="sm">
+            <Link to="/">
+              <Home className="mr-2 h-4 w-4" /> Manage Events
+            </Link>
+          </Button>
+        ) : (
+          <Button asChild variant="ghost" size="sm">
+            <Link to="/">
+              <Home className="mr-2 h-4 w-4" /> Explore Events
+            </Link>
+          </Button>
+        )}
         {user && user.role !== "admin" && (
           <Button asChild variant="ghost" size="sm">
             <Link to="/bookings">

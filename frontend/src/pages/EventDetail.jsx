@@ -34,10 +34,17 @@ const EventDetail = () => {
     load();
   }, [id]);
 
+  const isExpired = event && (event.isExpired || dayjs(event.endTime).isBefore(dayjs()));
+  const hasStarted = event && !dayjs(event.startTime).isAfter(dayjs());
+
   const submitBooking = async () => {
     if (!user) return navigate("/login");
     if (user.role === "admin") {
       setMessage("Admins cannot book events.");
+      return;
+    }
+    if (isExpired || hasStarted) {
+      setMessage(isExpired ? "This event has ended." : "This event has already started; bookings are closed.");
       return;
     }
     setMessage("");
@@ -68,11 +75,17 @@ const EventDetail = () => {
   return (
     <div className="page-shell max-w-5xl">
       <div className="overflow-hidden rounded-2xl border border-border">
-        <img
-          src={event.imageUrl || "https://picsum.photos/seed/event/1200/500"}
-          alt={event.title}
-          className="h-80 w-full object-cover"
-        />
+        {event.imageUrl ? (
+          <img
+            src={event.imageUrl}
+            alt={event.title}
+            className="w-full h-[320px] sm:h-[380px] md:h-[460px] object-cover"
+          />
+        ) : (
+          <div className="flex h-80 w-full items-center justify-center bg-muted text-sm text-muted-foreground">
+            No image provided
+          </div>
+        )}
       </div>
       <div className="grid gap-6 lg:grid-cols-[1.3fr_0.7fr]">
         <div className="space-y-3">
@@ -106,8 +119,16 @@ const EventDetail = () => {
                 onChange={(e) => setQuantity(parseInt(e.target.value, 10))}
               />
             </div>
-            <Button className="w-full" onClick={submitBooking} disabled={user?.role === "admin" || loading}>
-              {user?.role === "admin" ? "Admins cannot book" : loading ? "Redirecting..." : "Book Now"}
+            <Button className="w-full" onClick={submitBooking} disabled={user?.role === "admin" || loading || isExpired || hasStarted}>
+              {isExpired || hasStarted
+                ? hasStarted && !isExpired
+                  ? "Event started"
+                  : "Event ended"
+                : user?.role === "admin"
+                  ? "Admins cannot book"
+                  : loading
+                    ? "Redirecting..."
+                    : "Book Now"}
             </Button>
             {message && <p className="muted">{message}</p>}
           </CardContent>

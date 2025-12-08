@@ -21,7 +21,7 @@ const getTransporter = () => {
   return cachedTransporter;
 };
 
-export const sendEmail = async (to, subject, text, html) => {
+export const sendEmail = async (to, subject, text, html, attachments = []) => {
   const transporter = getTransporter();
 
   if (!transporter) {
@@ -34,6 +34,7 @@ export const sendEmail = async (to, subject, text, html) => {
     to,
     subject,
     text,
-    html: html || `<p>${text}</p>`
+    html: html || `<p>${text}</p>`,
+    attachments
   });
 };

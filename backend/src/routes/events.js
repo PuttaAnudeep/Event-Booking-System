@@ -13,10 +13,30 @@ const adminCanAccessEvent = (user, eventId) => {
   return managed.some((id) => String(id) === String(eventId));
 };
 
-router.get("/", async (_req, res) => {
+router.get("/", async (req, res) => {
   try {
-    const events = await Event.find({ isPublished: true }).sort({ startTime: 1 });
-    res.json(events);
+    const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
+    const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 9, 1), 50);
+    const { category, search } = req.query;
+
+    const filter = { isPublished: true };
+    if (category && category !== "all") {
+      filter.category = category;
+    }
+    if (search) {
+      const regex = new RegExp(search, "i");
+      filter.$or = [{ title: regex }, { description: regex }, { location: regex }];
+    }
+
+    const total = await Event.countDocuments(filter);
+    const events = await Event.find(filter)
+      .sort({ startTime: 1 })
+      .skip((page - 1) * limit)
+      .limit(limit);
+
+    const totalPages = total === 0 ? 0 : Math.ceil(total / limit);
+
+    res.json({ events, page, totalPages, total, pageSize: limit });
   } catch (err) {
     console.error("List events failed", err.message);
     res.status(500).json({ message: "Unable to load events" });
@@ -74,6 +94,9 @@ router.post(
     body("endTime").isISO8601(),
     body("capacity").isInt({ gt: 0 }),
     body("price").isFloat({ min: 0 }),
+    body("category")
+      .optional()
+      .isIn(["concert", "conference", "sports", "workshop", "webinar", "meetup", "festival", "other"]),
     body("isFree").optional().isBoolean(),
     body("eventType").optional().isIn(["in-person", "online", "hybrid", "other"])
   ],
@@ -110,6 +133,9 @@ router.put(
     body("endTime").optional().isISO8601(),
     body("capacity").optional().isInt({ gt: 0 }),
     body("price").optional().isFloat({ min: 0 }),
+    body("category")
+      .optional()
+      .isIn(["concert", "conference", "sports", "workshop", "webinar", "meetup", "festival", "other"]),
     body("isFree").optional().isBoolean(),
     body("eventType").optional().isIn(["in-person", "online", "hybrid", "other"])
   ],

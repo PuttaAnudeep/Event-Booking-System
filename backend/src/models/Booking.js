@@ -8,7 +8,8 @@ const bookingSchema = new mongoose.Schema(
     totalPrice: { type: Number, required: true },
     status: { type: String, enum: ["pending", "confirmed", "cancelled"], default: "pending" },
     paymentIntentId: { type: String },
-    paymentProvider: { type: String, enum: ["stripe", "paypal", "free"], default: "stripe" }
+    paymentProvider: { type: String, enum: ["stripe", "paypal", "free"], default: "stripe" },
+    reminderSent: { type: Boolean, default: false }
   },
   { timestamps: true }
 );

@@ -106,6 +106,10 @@ const AdminEventEdit = () => {
                 <option value="concert">Concert</option>
                 <option value="conference">Conference</option>
                 <option value="sports">Sports</option>
+                <option value="workshop">Workshop</option>
+                <option value="webinar">Webinar</option>
+                <option value="meetup">Meetup</option>
+                <option value="festival">Festival</option>
                 <option value="other">Other</option>
               </Select>
               <Select value={form.eventType} onChange={(e) => setForm({ ...form, eventType: e.target.value })}>
@@ -135,7 +139,7 @@ const AdminEventEdit = () => {
             <div className="space-y-2">
               <Label>Upload Image</Label>
               <Input type="file" accept="image/*" onChange={(e) => handleImageUpload(e.target.files?.[0])} />
-              {form.imageUrl && <img src={form.imageUrl} alt="preview" className="h-24 w-full rounded-md object-cover border border-border" />}
+              {form.imageUrl && <img src={form.imageUrl} alt="preview" className="h-full w-full rounded-md object-cover border border-border" />}
             </div>
             <div className="flex gap-2">
               <Button type="submit">Save changes</Button>

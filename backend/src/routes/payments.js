@@ -18,6 +18,33 @@ const getStripe = () => {
 
 const clientUrl = (process.env.CLIENT_URL || "http://localhost:5173").replace(/\/$/, "");
 
+const buildCalendarInvite = (event, booking) => {
+  const uid = `${booking._id}@eventia`;
+  const dtStart = new Date(event.startTime).toISOString().replace(/[-:]/g, "").replace(/\.\d{3}Z$/, "Z");
+  const dtEnd = new Date(event.endTime).toISOString().replace(/[-:]/g, "").replace(/\.\d{3}Z$/, "Z");
+  const dtStamp = new Date().toISOString().replace(/[-:]/g, "").replace(/\.\d{3}Z$/, "Z");
+  const body = [
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    "PRODID:-//Eventia//EN",
+    "BEGIN:VEVENT",
+    `UID:${uid}`,
+    `DTSTAMP:${dtStamp}`,
+    `DTSTART:${dtStart}`,
+    `DTEND:${dtEnd}`,
+    `SUMMARY:${event.title}`,
+    `DESCRIPTION:You booked ${booking.quantity} ticket(s).`,
+    `LOCATION:${event.location || ""}`,
+    "END:VEVENT",
+    "END:VCALENDAR"
+  ].join("\r\n");
+  return {
+    filename: `${event.title || "event"}.ics`,
+    content: body,
+    contentType: "text/calendar"
+  };
+};
+
 router.post(
   "/stripe/checkout",
   protect,
@@ -32,6 +59,7 @@ router.post(
       const event = await Event.findById(eventId);
       if (!event) return res.status(404).json({ message: "Event not found" });
       if (event.isFree || event.price === 0) return res.status(400).json({ message: "This event is free; no payment needed" });
+      if (event.startTime <= new Date()) return res.status(400).json({ message: "Bookings are closed because this event has already started" });
 
       // Ensure capacity before redirecting to Stripe
       const existing = await Booking.aggregate([
@@ -96,6 +124,7 @@ router.get("/stripe/confirm", protect, async (req, res) => {
 
     const event = await Event.findById(eventId);
     if (!event) return res.status(404).json({ message: "Event not found" });
+    if (event.startTime <= new Date()) return res.status(400).json({ message: "Bookings are closed because this event has already started" });
 
     const totalPrice = event.price * Number(quantity);
     const booking = await Booking.create({
@@ -109,10 +138,29 @@ router.get("/stripe/confirm", protect, async (req, res) => {
     });
 
     try {
+      const html = `
+        <div style="font-family: Arial, sans-serif; color: #222;">
+          <h2 style="margin-bottom:8px;">Booking confirmed</h2>
+          <p style="margin:4px 0;">Hi ${req.user.name || "there"},</p>
+          <p style="margin:4px 0;">Your booking is confirmed.</p>
+          <ul style="padding-left:16px;">
+            <li><strong>Event:</strong> ${event.title}</li>
+            <li><strong>When:</strong> ${new Date(event.startTime).toLocaleString()} - ${new Date(event.endTime).toLocaleString()}</li>
+            <li><strong>Where:</strong> ${event.location}</li>
+            <li><strong>Tickets:</strong> ${quantity}</li>
+            <li><strong>Total:</strong> ${totalPrice.toFixed(2)}</li>
+          </ul>
+          <p style="margin:4px 0;">Add it to your calendar with the attached invite.</p>
+          <p style="margin:12px 0 0 0;">Thanks for booking with Eventia.</p>
+        </div>
+      `;
+      const invite = buildCalendarInvite(event, booking);
       await sendEmail(
         req.user.email,
         "Booking confirmed",
-        `Your booking for ${event.title} is confirmed. Qty: ${quantity}, total: ${totalPrice}`
+        `Your booking for ${event.title} is confirmed. Qty: ${quantity}, total: ${totalPrice}`,
+        html,
+        [invite]
       );
     } catch (err) {
       console.error("Email send failed", err.message);

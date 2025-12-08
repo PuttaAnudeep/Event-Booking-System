@@ -164,6 +164,10 @@ const AdminEvents = () => {
                   <option value="concert">Concert</option>
                   <option value="conference">Conference</option>
                   <option value="sports">Sports</option>
+                  <option value="workshop">Workshop</option>
+                  <option value="webinar">Webinar</option>
+                  <option value="meetup">Meetup</option>
+                  <option value="festival">Festival</option>
                   <option value="other">Other</option>
                 </Select>
               </div>
