@@ -13,7 +13,7 @@ Eventia is a simple place to find, book, and manage events. Attendees discover c
 cd backend
 cp .env.example .env   # fill in MONGO_URI, JWT_SECRET, STRIPE_SECRET_KEY, CLIENT_URL
 npm install
-npm run seed    # creates an admin and sample events (if mongodb uri changes)
+#npm run seed - if the mongouri changes then to create sample events and default admin run this command
 npm run dev             # starts the API at http://localhost:5000
 ```
 
